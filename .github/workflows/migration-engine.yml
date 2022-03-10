@@ -26,7 +26,7 @@ jobs:
             url: "mongodb://prisma:prisma@localhost:27018/?authSource=admin&retryWrites=true"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Start ${{ matrix.database.name }}"
         run: make start-${{ matrix.database.name }}-single
@@ -104,7 +104,7 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: "Start ${{ matrix.database.name }}"
         run: make start-${{ matrix.database.name }}
@@ -213,7 +213,7 @@ jobs:
     name: "Test ${{ matrix.db.name }} on Windows"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions-rs/toolchain@v1
         with:
