@@ -10,7 +10,7 @@ use crate::{
     context::Context,
     types::{
         EnumAttributes, FieldWithArgs, IndexAlgorithm, IndexAttribute, IndexFieldPath, IndexType, ModelAttributes,
-        RelationField, ScalarField, ScalarFieldType, SortOrder,
+        OperatorClassStore, RelationField, ScalarField, ScalarFieldType, SortOrder,
     },
     DatamodelError, StringId, ValueValidator,
 };
@@ -311,6 +311,7 @@ fn visit_field_unique(field_id: ast::FieldId, model_attributes: &mut ModelAttrib
                 path: IndexFieldPath::new(field_id),
                 sort_order,
                 length,
+                operator_class: None,
             }],
             source_field: Some(field_id),
             mapped_name,
@@ -508,6 +509,7 @@ fn model_index(data: &mut ModelAttributes, model_id: ast::ModelId, ctx: &mut Con
     let algo = match ctx.visit_optional_arg("type").map(|sort| sort.as_constant_literal()) {
         Some(Ok("BTree")) => Some(IndexAlgorithm::BTree),
         Some(Ok("Hash")) => Some(IndexAlgorithm::Hash),
+        Some(Ok("Gist")) => Some(IndexAlgorithm::Gist),
         Some(Ok(other)) => {
             ctx.push_attribute_validation_error(&format!("Unknown index type: {}.", other));
             None
@@ -919,7 +921,7 @@ fn resolve_field_array_with_args<'db>(
 
     let ast_model = &ctx.ast[model_id];
 
-    'fields: for (field_name, _, _) in &constant_array {
+    'fields: for (field_name, _, _, _) in &constant_array {
         let path = if field_name.contains('.') {
             if !resolving.follow_composites() {
                 unknown_fields.push((ast::TopId::Model(model_id), *field_name));
@@ -1030,14 +1032,24 @@ fn resolve_field_array_with_args<'db>(
         let fields_with_args = constant_array
             .into_iter()
             .zip(field_ids)
-            .map(|((_, sort_order, length), field_location)| FieldWithArgs {
-                path: field_location,
-                sort_order,
-                length,
-            })
+            .map(
+                |((_, sort_order, length, operator_class), field_location)| FieldWithArgs {
+                    path: field_location,
+                    sort_order,
+                    length,
+                    operator_class: operator_class.map(|c| convert_op_class(c, ctx)),
+                },
+            )
             .collect();
 
         Ok(fields_with_args)
+    }
+}
+
+fn convert_op_class(raw: crate::value_validator::OperatorClass<'_>, ctx: &mut Context<'_>) -> OperatorClassStore {
+    match raw {
+        crate::value_validator::OperatorClass::InetOps => OperatorClassStore::gist_inet_ops(),
+        crate::value_validator::OperatorClass::Raw(s) => OperatorClassStore::raw(ctx.interner.intern(s)),
     }
 }
 

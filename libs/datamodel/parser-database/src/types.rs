@@ -1,6 +1,10 @@
 use crate::{context::Context, interner::StringId, DatamodelError};
+use either::Either;
 use schema_ast::ast::{self, WithName};
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt,
+};
 
 pub(super) fn resolve_types(ctx: &mut Context<'_>) {
     for (top_id, top) in ctx.ast.iter_tops() {
@@ -189,12 +193,24 @@ pub(crate) struct ModelAttributes {
 /// @@index([a, b], type: Hash)
 ///                 ^^^^^^^^^^
 /// ```
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum IndexAlgorithm {
     /// Binary tree index (the default in most databases)
     BTree,
     /// Hash index
     Hash,
+    /// GiST index
+    Gist,
+}
+
+impl fmt::Display for IndexAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            IndexAlgorithm::BTree => f.write_str("B-Tree"),
+            IndexAlgorithm::Hash => f.write_str("Hash"),
+            IndexAlgorithm::Gist => f.write_str("GiST"),
+        }
+    }
 }
 
 impl IndexAlgorithm {
@@ -399,6 +415,7 @@ pub struct FieldWithArgs {
     pub(crate) path: IndexFieldPath,
     pub(crate) sort_order: Option<SortOrder>,
     pub(crate) length: Option<u32>,
+    pub(crate) operator_class: Option<OperatorClassStore>,
 }
 
 #[derive(Debug, Default)]
@@ -583,6 +600,41 @@ fn field_type<'db>(field: &'db ast::Field, ctx: &mut Context<'db>) -> Result<Fie
         Some((_, ast::Top::Generator(_))) | Some((_, ast::Top::Source(_))) => unreachable!(),
         None => Err(supported),
         _ => unreachable!(),
+    }
+}
+
+/// Defines operators captured by the index. Used with PostgreSQL
+/// GiST/SP-GiST/GIN/BRIN indices.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum OperatorClass {
+    /// GiST + inet type
+    InetOps,
+}
+
+impl fmt::Display for OperatorClass {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OperatorClass::InetOps => f.write_str("InetOps"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct OperatorClassStore {
+    pub(crate) inner: Either<OperatorClass, StringId>,
+}
+
+impl OperatorClassStore {
+    pub(crate) fn gist_inet_ops() -> Self {
+        Self {
+            inner: Either::Left(OperatorClass::InetOps),
+        }
+    }
+
+    pub(crate) fn raw(id: StringId) -> Self {
+        Self {
+            inner: Either::Right(id),
+        }
     }
 }
 

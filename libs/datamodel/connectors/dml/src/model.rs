@@ -4,6 +4,7 @@ use crate::default_value::DefaultKind;
 use crate::field::{Field, FieldType, RelationField, ScalarField};
 use crate::scalars::ScalarType;
 use crate::traits::{Ignorable, WithDatabaseName, WithName};
+use std::borrow::Cow;
 use std::fmt;
 
 /// Represents a model in a prisma schema.
@@ -33,6 +34,7 @@ pub struct Model {
 pub enum IndexAlgorithm {
     BTree,
     Hash,
+    Gist,
 }
 
 impl Default for IndexAlgorithm {
@@ -63,12 +65,25 @@ impl IndexDefinition {
     }
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum OperatorClass {
+    InetOps,
+    Raw(Cow<'static, str>),
+}
+
+impl OperatorClass {
+    pub fn raw(op: impl Into<Cow<'static, str>>) -> Self {
+        Self::Raw(op.into())
+    }
+}
+
 ///A field in an index that optionally defines a sort order and length limit.
 #[derive(Debug, PartialEq, Clone)]
 pub struct IndexField {
     pub path: Vec<(String, Option<String>)>,
     pub sort_order: Option<SortOrder>,
     pub length: Option<u32>,
+    pub operator_class: Option<OperatorClass>,
 }
 
 impl IndexField {
@@ -78,6 +93,7 @@ impl IndexField {
             path: vec![(name.into(), None)],
             sort_order: None,
             length: None,
+            operator_class: None,
         }
     }
 
@@ -89,6 +105,7 @@ impl IndexField {
                 .collect(),
             sort_order: None,
             length: None,
+            operator_class: None,
         }
     }
 }

@@ -179,6 +179,7 @@ pub(crate) fn calculate_index(index: &Index, ctx: &IntrospectionContext) -> Inde
                     path: vec![(c.name().to_string(), None)],
                     sort_order,
                     length,
+                    operator_class: None,
                 }
             })
             .collect(),

@@ -1,7 +1,8 @@
+mod validations;
+
 use datamodel_connector::{
     helper::{arg_vec_from_opt, args_vec_from_opt, parse_one_opt_u32, parse_two_opt_u32},
-    parser_database::walkers::ModelWalker,
-    walker_ext_traits::*,
+    parser_database::{walkers::ModelWalker, IndexAlgorithm},
     Connector, ConnectorCapability, ConstraintScope, DatamodelError, Diagnostics, NativeTypeConstructor,
     NativeTypeInstance, ReferentialAction, ReferentialIntegrity, ScalarType, Span,
 };
@@ -102,6 +103,8 @@ const CAPABILITIES: &[ConnectorCapability] = &[
     ConnectorCapability::ImplicitManyToManyRelation,
     ConnectorCapability::DecimalType,
 ];
+
+const INDEX_TYPES: &[IndexAlgorithm] = &[IndexAlgorithm::BTree, IndexAlgorithm::Gist, IndexAlgorithm::Hash];
 
 pub struct PostgresDatamodelConnector;
 
@@ -233,24 +236,8 @@ impl Connector for PostgresDatamodelConnector {
 
     fn validate_model(&self, model: ModelWalker<'_>, errors: &mut Diagnostics) {
         for index in model.indexes() {
-            for field in index.fields() {
-                if let Some(native_type) = field.native_type_instance(self) {
-                    let span = field.ast_field().span;
-                    let r#type: PostgresType =
-                        serde_json::from_value(native_type.serialized_native_type.clone()).unwrap();
-                    let error = self.native_instance_error(&native_type);
-
-                    if r#type == PostgresType::Xml {
-                        if index.is_unique() {
-                            errors.push_error(error.new_incompatible_native_type_with_unique("", span))
-                        } else {
-                            errors.push_error(error.new_incompatible_native_type_with_index("", span))
-                        };
-
-                        break;
-                    }
-                }
-            }
+            validations::compatible_native_types(index, self, errors);
+            validations::generalized_index_validations(index, self, errors);
         }
     }
 
@@ -260,6 +247,10 @@ impl Connector for PostgresDatamodelConnector {
 
     fn available_native_type_constructors(&self) -> &'static [NativeTypeConstructor] {
         NATIVE_TYPE_CONSTRUCTORS
+    }
+
+    fn supported_index_types(&self) -> &'static [IndexAlgorithm] {
+        INDEX_TYPES
     }
 
     fn parse_native_type(

@@ -3,10 +3,7 @@ use crate::{
     ast::Span,
     common::preview_features::PreviewFeature,
     diagnostics::DatamodelError,
-    transform::ast_to_dml::{
-        db::{walkers::IndexWalker, IndexAlgorithm},
-        validation_pipeline::context::Context,
-    },
+    transform::ast_to_dml::{db::walkers::IndexWalker, validation_pipeline::context::Context},
 };
 use datamodel_connector::{walker_ext_traits::*, ConnectorCapability};
 use schema_ast::ast::{WithName, WithSpan};
@@ -115,23 +112,6 @@ pub(crate) fn field_length_prefix_supported(index: IndexWalker<'_>, ctx: &mut Co
             index.attribute_name(),
             span,
         ));
-    }
-}
-
-/// Is `Hash` supported as `type`
-pub(crate) fn index_algorithm_is_supported(index: IndexWalker<'_>, ctx: &mut Context<'_>) {
-    if ctx.connector.has_capability(ConnectorCapability::UsingHashIndex) {
-        return;
-    }
-
-    if let Some(IndexAlgorithm::Hash) = index.algorithm() {
-        let message = "The given type argument is not supported with the current connector";
-        let span = index
-            .ast_attribute()
-            .and_then(|i| i.span_for_argument("type"))
-            .unwrap_or_else(Span::empty);
-
-        ctx.push_error(DatamodelError::new_attribute_validation_error(message, "index", span));
     }
 }
 
@@ -430,10 +410,6 @@ pub(crate) fn clustering_can_be_defined_only_once(index: IndexWalker<'_>, ctx: &
         return;
     }
 
-    if !ctx.preview_features.contains(PreviewFeature::ExtendedIndexes) {
-        return;
-    }
-
     if index.clustered() != Some(true) {
         return;
     }
@@ -471,4 +447,28 @@ pub(crate) fn clustering_can_be_defined_only_once(index: IndexWalker<'_>, ctx: &
 
         return;
     }
+}
+
+/// Is the index algorithm supported by the current connector.
+pub(crate) fn index_algorithm_is_supported(index: IndexWalker<'_>, ctx: &mut Context<'_>) {
+    if !ctx.preview_features.contains(PreviewFeature::ExtendedIndexes) {
+        return;
+    }
+
+    let algo = match index.algorithm() {
+        Some(algo) => algo,
+        None => return,
+    };
+
+    if ctx.connector.supports_index_type(&algo) {
+        return;
+    }
+
+    let message = "The given index type is not supported with the current connector";
+    let span = index
+        .ast_attribute()
+        .and_then(|i| i.span_for_argument("type"))
+        .unwrap_or_else(Span::empty);
+
+    ctx.push_error(DatamodelError::new_attribute_validation_error(message, "index", span));
 }

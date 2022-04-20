@@ -6,14 +6,24 @@ use crate::{
     types::SortOrder,
 };
 use diagnostics::DatamodelError;
-use std::error;
+use std::{error, fmt};
 
 /// Wraps a value and provides convenience methods for
 /// validating it.
-#[derive(Debug)]
 pub struct ValueValidator<'a> {
     /// The underlying AST expression.
     pub value: &'a ast::Expression,
+}
+
+impl<'a> fmt::Debug for ValueValidator<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ValueValidator").field("value", self.value).finish()
+    }
+}
+
+pub(crate) enum OperatorClass<'a> {
+    InetOps,
+    Raw(&'a str),
 }
 
 impl<'a> ValueValidator<'a> {
@@ -106,7 +116,7 @@ impl<'a> ValueValidator<'a> {
     /// Unwraps the value as an array of constants.
     pub(crate) fn as_field_array_with_args(
         &self,
-    ) -> Result<Vec<(&'a str, Option<SortOrder>, Option<u32>)>, DatamodelError> {
+    ) -> Result<Vec<(&'a str, Option<SortOrder>, Option<u32>, Option<OperatorClass<'a>>)>, DatamodelError> {
         if let ast::Expression::Array(values, _) = &self.value {
             values.iter().map(|val| ValueValidator::new(val).as_func()).collect()
         } else {
@@ -115,19 +125,22 @@ impl<'a> ValueValidator<'a> {
         }
     }
 
-    fn as_func(&self) -> Result<(&'a str, Option<SortOrder>, Option<u32>), DatamodelError> {
+    fn as_func(&self) -> Result<(&'a str, Option<SortOrder>, Option<u32>, Option<OperatorClass<'a>>), DatamodelError> {
         match &self.value {
-            ast::Expression::ConstantValue(field_name, _) => Ok((field_name, None, None)),
+            ast::Expression::ConstantValue(field_name, _) => Ok((field_name, None, None, None)),
             ast::Expression::Function(field_name, args, _) => {
-                let (sort, length) = ValueValidator::field_args(&args.arguments)?;
-                Ok((field_name, sort, length))
+                let (sort, length, operator_class) = ValueValidator::field_args(&args.arguments)?;
+
+                Ok((field_name, sort, length, operator_class))
             }
 
             _ => Err(self.construct_type_mismatch_error("constant literal")),
         }
     }
 
-    fn field_args(args: &[ast::Argument]) -> Result<(Option<SortOrder>, Option<u32>), DatamodelError> {
+    fn field_args(
+        args: &'a [ast::Argument],
+    ) -> Result<(Option<SortOrder>, Option<u32>, Option<OperatorClass<'a>>), DatamodelError> {
         let sort = args
             .iter()
             .find(|arg| arg.name.as_ref().map(|n| n.name.as_str()) == Some("sort"))
@@ -151,7 +164,38 @@ impl<'a> ValueValidator<'a> {
             })
             .transpose()?;
 
-        Ok((sort, length))
+        let operator_class = args
+            .iter()
+            .find(|arg| arg.name.as_ref().map(|n| n.name.as_str()) == Some("ops"))
+            .map(|arg| match &arg.value {
+                ast::Expression::ConstantValue(s, span) => match s.as_str() {
+                    "InetOps" => Ok(OperatorClass::InetOps),
+                    s => Err(DatamodelError::new_parser_error(
+                        format!("Invalid operator class: {s}"),
+                        *span,
+                    )),
+                },
+                ast::Expression::Function(fun, args, span) => match fun.as_str() {
+                    "raw" => match args.arguments.as_slice() {
+                        [arg] => match &arg.value {
+                            ast::Expression::StringValue(s, _) => Ok(OperatorClass::Raw(s.as_str())),
+                            _ => Err(DatamodelError::new_parser_error(
+                                "Invalid parameter type: expected string".into(),
+                                *span,
+                            )),
+                        },
+                        args => Err(DatamodelError::new_parser_error(
+                            format!("Wrong number of arguments. Expected: 1, got: {}", args.len()),
+                            *span,
+                        )),
+                    },
+                    _ => panic!(),
+                },
+                _ => Err(DatamodelError::new_parser_error("operator class".to_owned(), arg.span)),
+            })
+            .transpose()?;
+
+        Ok((sort, length, operator_class))
     }
 
     /// Unwraps the wrapped value as a referential action.

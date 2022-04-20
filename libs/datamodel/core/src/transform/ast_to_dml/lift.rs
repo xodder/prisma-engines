@@ -5,6 +5,7 @@ use crate::{
 };
 use ::dml::composite_type::{CompositeType, CompositeTypeField, CompositeTypeFieldType};
 use datamodel_connector::{walker_ext_traits::*, Connector, ReferentialIntegrity, ScalarType};
+use itertools::Either;
 use std::collections::HashMap;
 
 /// Helper for lifting a datamodel.
@@ -380,11 +381,13 @@ impl<'a> LiftAstToDml<'a> {
 
                         let sort_order = field.sort_order().map(parser_database_sort_order_to_dml_sort_order);
                         let length = field.length();
+                        let operator_class = field.operator_class().map(convert_op_class);
 
                         IndexField {
                             path,
                             sort_order,
                             length,
+                            operator_class,
                         }
                     })
                     .collect();
@@ -398,6 +401,7 @@ impl<'a> LiftAstToDml<'a> {
                 let algorithm = idx.algorithm().map(|using| match using {
                     IndexAlgorithm::BTree => dml::IndexAlgorithm::BTree,
                     IndexAlgorithm::Hash => dml::IndexAlgorithm::Hash,
+                    IndexAlgorithm::Gist => dml::IndexAlgorithm::Gist,
                 });
 
                 dml::IndexDefinition {
@@ -649,5 +653,12 @@ fn dml_default_kind(default_value: &ast::Expression, scalar_type: Option<ScalarT
             other => unreachable!("{:?}", other),
         },
         other => unreachable!("{:?}", other),
+    }
+}
+
+fn convert_op_class(from_db: OperatorClassWalker<'_>) -> dml::OperatorClass {
+    match from_db.get() {
+        Either::Left(db::OperatorClass::InetOps) => dml::OperatorClass::InetOps,
+        Either::Right(raw) => dml::OperatorClass::Raw(raw.to_string().into()),
     }
 }
