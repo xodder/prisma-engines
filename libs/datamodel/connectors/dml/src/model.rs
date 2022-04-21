@@ -35,6 +35,7 @@ pub enum IndexAlgorithm {
     BTree,
     Hash,
     Gist,
+    Gin,
 }
 
 impl Default for IndexAlgorithm {
@@ -67,7 +68,14 @@ impl IndexDefinition {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum OperatorClass {
+    // GiST
     InetOps,
+
+    // GIN
+    JsonbOps,
+    JsonbPathOps,
+    ArrayOps,
+
     Raw(Cow<'static, str>),
 }
 

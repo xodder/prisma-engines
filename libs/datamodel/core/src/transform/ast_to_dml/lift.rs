@@ -402,6 +402,7 @@ impl<'a> LiftAstToDml<'a> {
                     IndexAlgorithm::BTree => dml::IndexAlgorithm::BTree,
                     IndexAlgorithm::Hash => dml::IndexAlgorithm::Hash,
                     IndexAlgorithm::Gist => dml::IndexAlgorithm::Gist,
+                    IndexAlgorithm::Gin => dml::IndexAlgorithm::Gin,
                 });
 
                 dml::IndexDefinition {
@@ -658,7 +659,14 @@ fn dml_default_kind(default_value: &ast::Expression, scalar_type: Option<ScalarT
 
 fn convert_op_class(from_db: OperatorClassWalker<'_>) -> dml::OperatorClass {
     match from_db.get() {
+        // gist
         Either::Left(db::OperatorClass::InetOps) => dml::OperatorClass::InetOps,
+
+        // gin
+        Either::Left(db::OperatorClass::JsonbOps) => dml::OperatorClass::JsonbOps,
+        Either::Left(db::OperatorClass::JsonbPathOps) => dml::OperatorClass::JsonbPathOps,
+        Either::Left(db::OperatorClass::ArrayOps) => dml::OperatorClass::ArrayOps,
+
         Either::Right(raw) => dml::OperatorClass::Raw(raw.to_string().into()),
     }
 }

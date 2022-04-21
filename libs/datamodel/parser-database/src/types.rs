@@ -201,6 +201,8 @@ pub enum IndexAlgorithm {
     Hash,
     /// GiST index
     Gist,
+    /// GIN index
+    Gin,
 }
 
 impl fmt::Display for IndexAlgorithm {
@@ -209,6 +211,7 @@ impl fmt::Display for IndexAlgorithm {
             IndexAlgorithm::BTree => f.write_str("B-Tree"),
             IndexAlgorithm::Hash => f.write_str("Hash"),
             IndexAlgorithm::Gist => f.write_str("GiST"),
+            IndexAlgorithm::Gin => f.write_str("GIN"),
         }
     }
 }
@@ -609,12 +612,21 @@ fn field_type<'db>(field: &'db ast::Field, ctx: &mut Context<'db>) -> Result<Fie
 pub enum OperatorClass {
     /// GiST + inet type
     InetOps,
+    /// GIN + jsonb type
+    JsonbOps,
+    /// GIN + jsonb type
+    JsonbPathOps,
+    /// GIN + array type
+    ArrayOps,
 }
 
 impl fmt::Display for OperatorClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             OperatorClass::InetOps => f.write_str("InetOps"),
+            OperatorClass::JsonbOps => f.write_str("JsonbOps"),
+            OperatorClass::JsonbPathOps => f.write_str("JsonbPathOps"),
+            OperatorClass::ArrayOps => f.write_str("ArrayOps"),
         }
     }
 }
@@ -625,9 +637,27 @@ pub(crate) struct OperatorClassStore {
 }
 
 impl OperatorClassStore {
-    pub(crate) fn gist_inet_ops() -> Self {
+    pub(crate) fn inet_ops() -> Self {
         Self {
             inner: Either::Left(OperatorClass::InetOps),
+        }
+    }
+
+    pub(crate) fn jsonb_ops() -> Self {
+        Self {
+            inner: Either::Left(OperatorClass::JsonbOps),
+        }
+    }
+
+    pub(crate) fn jsonb_path_ops() -> Self {
+        Self {
+            inner: Either::Left(OperatorClass::JsonbPathOps),
+        }
+    }
+
+    pub(crate) fn array_ops() -> Self {
+        Self {
+            inner: Either::Left(OperatorClass::ArrayOps),
         }
     }
 

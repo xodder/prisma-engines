@@ -104,7 +104,12 @@ const CAPABILITIES: &[ConnectorCapability] = &[
     ConnectorCapability::DecimalType,
 ];
 
-const INDEX_TYPES: &[IndexAlgorithm] = &[IndexAlgorithm::BTree, IndexAlgorithm::Gist, IndexAlgorithm::Hash];
+const INDEX_TYPES: &[IndexAlgorithm] = &[
+    IndexAlgorithm::BTree,
+    IndexAlgorithm::Gist,
+    IndexAlgorithm::Hash,
+    IndexAlgorithm::Gin,
+];
 
 pub struct PostgresDatamodelConnector;
 

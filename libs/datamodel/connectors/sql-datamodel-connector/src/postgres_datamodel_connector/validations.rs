@@ -50,6 +50,11 @@ pub(super) fn generalized_index_validations(
             // valid gist
             (Some(OperatorClass::InetOps), IndexAlgorithm::Gist) => (),
 
+            // valid gin
+            (Some(OperatorClass::JsonbOps), IndexAlgorithm::Gin) => (),
+            (Some(OperatorClass::JsonbPathOps), IndexAlgorithm::Gin) => (),
+            (Some(OperatorClass::ArrayOps), IndexAlgorithm::Gin) => (),
+
             // invalid
             (Some(opclass), _) => {
                 let msg =
@@ -65,7 +70,32 @@ pub(super) fn generalized_index_validations(
         }
 
         match (&native_type, opclass) {
+            // valid gist
             (Some(PostgresType::Inet), Some(OperatorClass::InetOps)) => (),
+
+            // valid gin
+            (Some(PostgresType::JsonB) | None, Some(OperatorClass::JsonbOps)) => (),
+            (Some(PostgresType::JsonB) | None, Some(OperatorClass::JsonbPathOps)) => (),
+            (Some(PostgresType::JsonB), None) => (), // jsonb has default ops
+            (_, Some(OperatorClass::ArrayOps)) => {
+                if field
+                    .as_index_field()
+                    .as_scalar_field()
+                    .filter(|sf| !sf.ast_field().arity.is_list())
+                    .is_none()
+                {
+                    continue;
+                }
+
+                let name = field.as_index_field().name();
+
+                let msg =
+                    format!("The given operator class `ArrayOps` expects the type of field `{name}` to be an array.");
+
+                errors.push_error(DatamodelError::new_attribute_validation_error(
+                    &msg, "@index", attr.span,
+                ));
+            }
 
             // error
             (Some(native_type), Some(opclass)) => {
@@ -88,8 +118,9 @@ pub(super) fn generalized_index_validations(
             }
             (None, Some(opclass)) => {
                 let name = field.as_index_field().name();
-                let msg =
-                    format!("The given operator class `{opclass}` expects the field `{name}` to define a native type.");
+                let msg = format!(
+                    "The given operator class `{opclass}` expects the field `{name}` to define a valid native type."
+                );
 
                 errors.push_error(DatamodelError::new_attribute_validation_error(
                     &msg, "@index", attr.span,

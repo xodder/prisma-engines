@@ -22,7 +22,14 @@ impl<'a> fmt::Debug for ValueValidator<'a> {
 }
 
 pub(crate) enum OperatorClass<'a> {
+    // gist
     InetOps,
+
+    // gin
+    JsonbOps,
+    JsonbPathOps,
+    ArrayOps,
+
     Raw(&'a str),
 }
 
@@ -169,7 +176,14 @@ impl<'a> ValueValidator<'a> {
             .find(|arg| arg.name.as_ref().map(|n| n.name.as_str()) == Some("ops"))
             .map(|arg| match &arg.value {
                 ast::Expression::ConstantValue(s, span) => match s.as_str() {
+                    // gist
                     "InetOps" => Ok(OperatorClass::InetOps),
+
+                    // gin
+                    "JsonbOps" => Ok(OperatorClass::JsonbOps),
+                    "JsonbPathOps" => Ok(OperatorClass::JsonbPathOps),
+                    "ArrayOps" => Ok(OperatorClass::ArrayOps),
+
                     s => Err(DatamodelError::new_parser_error(
                         format!("Invalid operator class: {s}"),
                         *span,
