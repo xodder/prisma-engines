@@ -36,6 +36,7 @@ pub enum IndexAlgorithm {
     Hash,
     Gist,
     Gin,
+    SpGist,
 }
 
 impl Default for IndexAlgorithm {
@@ -75,6 +76,10 @@ pub enum OperatorClass {
     JsonbOps,
     JsonbPathOps,
     ArrayOps,
+
+    // SP-GiST
+    NetworkOps,
+    TextOps,
 
     Raw(Cow<'static, str>),
 }

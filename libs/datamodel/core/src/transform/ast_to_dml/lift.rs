@@ -403,6 +403,7 @@ impl<'a> LiftAstToDml<'a> {
                     IndexAlgorithm::Hash => dml::IndexAlgorithm::Hash,
                     IndexAlgorithm::Gist => dml::IndexAlgorithm::Gist,
                     IndexAlgorithm::Gin => dml::IndexAlgorithm::Gin,
+                    IndexAlgorithm::SpGist => dml::IndexAlgorithm::SpGist,
                 });
 
                 dml::IndexDefinition {
@@ -666,6 +667,10 @@ fn convert_op_class(from_db: OperatorClassWalker<'_>) -> dml::OperatorClass {
         Either::Left(db::OperatorClass::JsonbOps) => dml::OperatorClass::JsonbOps,
         Either::Left(db::OperatorClass::JsonbPathOps) => dml::OperatorClass::JsonbPathOps,
         Either::Left(db::OperatorClass::ArrayOps) => dml::OperatorClass::ArrayOps,
+
+        // sp-gist
+        Either::Left(db::OperatorClass::NetworkOps) => dml::OperatorClass::NetworkOps,
+        Either::Left(db::OperatorClass::TextOps) => dml::OperatorClass::TextOps,
 
         Either::Right(raw) => dml::OperatorClass::Raw(raw.to_string().into()),
     }

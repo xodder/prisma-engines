@@ -511,6 +511,7 @@ fn model_index(data: &mut ModelAttributes, model_id: ast::ModelId, ctx: &mut Con
         Some(Ok("Hash")) => Some(IndexAlgorithm::Hash),
         Some(Ok("Gist")) => Some(IndexAlgorithm::Gist),
         Some(Ok("Gin")) => Some(IndexAlgorithm::Gin),
+        Some(Ok("SpGist")) => Some(IndexAlgorithm::SpGist),
         Some(Ok(other)) => {
             ctx.push_attribute_validation_error(&format!("Unknown index type: {}.", other));
             None
@@ -1049,14 +1050,7 @@ fn resolve_field_array_with_args<'db>(
 
 fn convert_op_class(raw: crate::value_validator::OperatorClass<'_>, ctx: &mut Context<'_>) -> OperatorClassStore {
     match raw {
-        // gist
-        crate::value_validator::OperatorClass::InetOps => OperatorClassStore::inet_ops(),
-
-        // gin
-        crate::value_validator::OperatorClass::JsonbOps => OperatorClassStore::jsonb_ops(),
-        crate::value_validator::OperatorClass::JsonbPathOps => OperatorClassStore::jsonb_path_ops(),
-        crate::value_validator::OperatorClass::ArrayOps => OperatorClassStore::array_ops(),
-
+        crate::value_validator::OperatorClass::Constant(class) => OperatorClassStore::from(class),
         crate::value_validator::OperatorClass::Raw(s) => OperatorClassStore::raw(ctx.interner.intern(s)),
     }
 }

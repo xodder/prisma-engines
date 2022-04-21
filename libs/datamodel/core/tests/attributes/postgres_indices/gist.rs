@@ -147,7 +147,7 @@ fn wrong_ops_native_type() {
     let error = datamodel::parse_schema(&schema).map(drop).unwrap_err();
 
     let expectation = expect![[r#"
-        [1;91merror[0m: [1mError parsing attribute "@@index": The given operator class `InetOps` does not support `a` field's native type `VarChar`.[0m
+        [1;91merror[0m: [1mError parsing attribute "@@index": The given operator class `InetOps` does not support native type `VarChar` of field `a`.[0m
           [1;94m-->[0m  [4mschema.prisma:15[0m
         [1;94m   | [0m
         [1;94m14 | [0m

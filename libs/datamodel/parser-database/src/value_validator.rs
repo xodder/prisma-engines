@@ -22,15 +22,14 @@ impl<'a> fmt::Debug for ValueValidator<'a> {
 }
 
 pub(crate) enum OperatorClass<'a> {
-    // gist
-    InetOps,
-
-    // gin
-    JsonbOps,
-    JsonbPathOps,
-    ArrayOps,
-
+    Constant(crate::OperatorClass),
     Raw(&'a str),
+}
+
+impl<'a> From<crate::OperatorClass> for OperatorClass<'a> {
+    fn from(inner: crate::OperatorClass) -> Self {
+        Self::Constant(inner)
+    }
 }
 
 impl<'a> ValueValidator<'a> {
@@ -177,12 +176,16 @@ impl<'a> ValueValidator<'a> {
             .map(|arg| match &arg.value {
                 ast::Expression::ConstantValue(s, span) => match s.as_str() {
                     // gist
-                    "InetOps" => Ok(OperatorClass::InetOps),
+                    "InetOps" => Ok(OperatorClass::from(crate::OperatorClass::InetOps)),
 
                     // gin
-                    "JsonbOps" => Ok(OperatorClass::JsonbOps),
-                    "JsonbPathOps" => Ok(OperatorClass::JsonbPathOps),
-                    "ArrayOps" => Ok(OperatorClass::ArrayOps),
+                    "JsonbOps" => Ok(OperatorClass::from(crate::OperatorClass::JsonbOps)),
+                    "JsonbPathOps" => Ok(OperatorClass::from(crate::OperatorClass::JsonbPathOps)),
+                    "ArrayOps" => Ok(OperatorClass::from(crate::OperatorClass::ArrayOps)),
+
+                    // sp-gist
+                    "NetworkOps" => Ok(OperatorClass::from(crate::OperatorClass::NetworkOps)),
+                    "TextOps" => Ok(OperatorClass::from(crate::OperatorClass::TextOps)),
 
                     s => Err(DatamodelError::new_parser_error(
                         format!("Invalid operator class: {s}"),

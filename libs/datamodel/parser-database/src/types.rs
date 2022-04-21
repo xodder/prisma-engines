@@ -1,4 +1,4 @@
-use crate::{context::Context, interner::StringId, DatamodelError};
+use crate::{context::Context, interner::StringId, walkers::IndexFieldWalker, DatamodelError};
 use either::Either;
 use schema_ast::ast::{self, WithName};
 use std::{
@@ -114,6 +114,16 @@ impl ScalarFieldType {
     pub fn is_unsupported(self) -> bool {
         matches!(self, Self::Unsupported(_))
     }
+
+    /// True if the field's type is Json.
+    pub fn is_json(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::Json))
+    }
+
+    /// True if the field's type is Json.
+    pub fn is_string(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::String))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -203,15 +213,18 @@ pub enum IndexAlgorithm {
     Gist,
     /// GIN index
     Gin,
+    /// SP-GiST index
+    SpGist,
 }
 
 impl fmt::Display for IndexAlgorithm {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IndexAlgorithm::BTree => f.write_str("B-Tree"),
+            IndexAlgorithm::BTree => f.write_str("BTree"),
             IndexAlgorithm::Hash => f.write_str("Hash"),
-            IndexAlgorithm::Gist => f.write_str("GiST"),
-            IndexAlgorithm::Gin => f.write_str("GIN"),
+            IndexAlgorithm::Gist => f.write_str("Gist"),
+            IndexAlgorithm::Gin => f.write_str("Gin"),
+            IndexAlgorithm::SpGist => f.write_str("SpGist"),
         }
     }
 }
@@ -220,6 +233,43 @@ impl IndexAlgorithm {
     /// Is this a hash index?
     pub fn is_hash(self) -> bool {
         matches!(self, Self::Hash)
+    }
+
+    /// GiST?
+    pub fn is_gist(self) -> bool {
+        matches!(self, Self::Gist)
+    }
+
+    /// GIN?
+    pub fn is_gin(self) -> bool {
+        matches!(self, Self::Gin)
+    }
+
+    /// SP-GiST?
+    pub fn is_spgist(self) -> bool {
+        matches!(self, Self::SpGist)
+    }
+
+    /// BRIN?
+    pub fn is_brin(self) -> bool {
+        todo!()
+    }
+
+    /// True if the operator class can be used with the given scalar type.
+    pub fn supports_field_type(self, field: IndexFieldWalker<'_>) -> bool {
+        let r#type = field.scalar_field_type();
+
+        if r#type.is_unsupported() {
+            return true;
+        }
+
+        match self {
+            IndexAlgorithm::BTree => true,
+            IndexAlgorithm::Hash => true,
+            IndexAlgorithm::Gist => r#type.is_string(),
+            IndexAlgorithm::Gin => r#type.is_json() || field.ast_field().arity.is_list(),
+            IndexAlgorithm::SpGist => r#type.is_string(),
+        }
     }
 }
 
@@ -618,6 +668,24 @@ pub enum OperatorClass {
     JsonbPathOps,
     /// GIN + array type
     ArrayOps,
+    /// SP-GiST + inet type
+    NetworkOps,
+    /// SP-GiST + text type
+    TextOps,
+}
+
+impl OperatorClass {
+    /// True if the class supports the given index type.
+    pub fn supports_index_type(self, algo: IndexAlgorithm) -> bool {
+        match self {
+            Self::InetOps => matches!(algo, IndexAlgorithm::Gist),
+            Self::JsonbOps => matches!(algo, IndexAlgorithm::Gin),
+            Self::JsonbPathOps => matches!(algo, IndexAlgorithm::Gin),
+            Self::ArrayOps => matches!(algo, IndexAlgorithm::Gin),
+            Self::NetworkOps => matches!(algo, IndexAlgorithm::SpGist),
+            Self::TextOps => matches!(algo, IndexAlgorithm::SpGist),
+        }
+    }
 }
 
 impl fmt::Display for OperatorClass {
@@ -627,6 +695,8 @@ impl fmt::Display for OperatorClass {
             OperatorClass::JsonbOps => f.write_str("JsonbOps"),
             OperatorClass::JsonbPathOps => f.write_str("JsonbPathOps"),
             OperatorClass::ArrayOps => f.write_str("ArrayOps"),
+            OperatorClass::NetworkOps => f.write_str("NetworkOps"),
+            OperatorClass::TextOps => f.write_str("TextOps"),
         }
     }
 }
@@ -636,31 +706,15 @@ pub(crate) struct OperatorClassStore {
     pub(crate) inner: Either<OperatorClass, StringId>,
 }
 
+impl From<OperatorClass> for OperatorClassStore {
+    fn from(inner: OperatorClass) -> Self {
+        Self {
+            inner: Either::Left(inner),
+        }
+    }
+}
+
 impl OperatorClassStore {
-    pub(crate) fn inet_ops() -> Self {
-        Self {
-            inner: Either::Left(OperatorClass::InetOps),
-        }
-    }
-
-    pub(crate) fn jsonb_ops() -> Self {
-        Self {
-            inner: Either::Left(OperatorClass::JsonbOps),
-        }
-    }
-
-    pub(crate) fn jsonb_path_ops() -> Self {
-        Self {
-            inner: Either::Left(OperatorClass::JsonbPathOps),
-        }
-    }
-
-    pub(crate) fn array_ops() -> Self {
-        Self {
-            inner: Either::Left(OperatorClass::ArrayOps),
-        }
-    }
-
     pub(crate) fn raw(id: StringId) -> Self {
         Self {
             inner: Either::Right(id),

@@ -1,5 +1,6 @@
-mod gist;
 mod gin;
+mod gist;
+mod spgist;
 
 use crate::{common::*, with_header, Provider};
 
