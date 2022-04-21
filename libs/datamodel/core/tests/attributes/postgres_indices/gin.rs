@@ -76,6 +76,7 @@ fn with_raw_unsupported() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -102,6 +103,7 @@ fn with_unsupported_no_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -130,6 +132,7 @@ fn no_ops_json_prisma_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -156,6 +159,7 @@ fn no_ops_jsonb_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -183,6 +187,7 @@ fn valid_jsonb_ops_with_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -210,6 +215,7 @@ fn valid_jsonb_ops_without_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -317,6 +323,7 @@ fn valid_jsonb_path_ops_with_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -344,6 +351,7 @@ fn valid_jsonb_path_ops_without_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 
@@ -451,6 +459,7 @@ fn array_field_array_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gin),
+        clustered: None,
     });
 }
 

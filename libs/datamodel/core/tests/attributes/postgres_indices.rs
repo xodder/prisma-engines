@@ -1,3 +1,4 @@
+mod brin;
 mod gin;
 mod gist;
 mod spgist;
@@ -25,6 +26,7 @@ fn hash_index() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Hash),
+        clustered: None,
     });
 }
 
@@ -137,6 +139,33 @@ fn disallows_index_length_prefix() {
         [1;94m   | [0m
         [1;94m14 | [0m
         [1;94m15 | [0m  @@[1;91mindex([a(length: 10)])[0m
+        [1;94m   | [0m
+    "#]];
+
+    expectation.assert_eq(&error)
+}
+
+#[test]
+fn operator_classes_not_allowed_with_unique() {
+    let dml = indoc! {r#"
+        model A {
+          id Int @id
+          a  String
+          b  String
+
+          @@unique([a(ops: raw("foo")), b(ops: raw("bar"))])
+        }
+    "#};
+
+    let dml = with_header(dml, Provider::Postgres, &["extendedIndexes"]);
+    let error = datamodel::parse_schema(&dml).map(drop).unwrap_err();
+
+    let expectation = expect![[r#"
+        [1;91merror[0m: [1mError parsing attribute "@unique": Operator classes can only be defined to fields in an @@index attribute.[0m
+          [1;94m-->[0m  [4mschema.prisma:16[0m
+        [1;94m   | [0m
+        [1;94m15 | [0m
+        [1;94m16 | [0m  @@[1;91munique([a(ops: raw("foo")), b(ops: raw("bar"))])[0m
         [1;94m   | [0m
     "#]];
 

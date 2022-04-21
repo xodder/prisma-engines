@@ -472,3 +472,35 @@ pub(crate) fn index_algorithm_is_supported(index: IndexWalker<'_>, ctx: &mut Con
 
     ctx.push_error(DatamodelError::new_attribute_validation_error(message, "index", span));
 }
+
+pub(crate) fn cannot_set_index_field_ops_on_unique(index: IndexWalker<'_>, ctx: &mut Context<'_>) {
+    if !ctx.preview_features.contains(PreviewFeature::ExtendedIndexes) {
+        return;
+    }
+
+    if index.is_normal() {
+        return;
+    }
+
+    let attr = if let Some(attribute) = index.ast_attribute() {
+        attribute
+    } else {
+        return;
+    };
+
+    for field in index.scalar_field_attributes() {
+        if field.operator_class().is_none() {
+            continue;
+        }
+
+        let message = "Operator classes can only be defined to fields in an @@index attribute.";
+
+        ctx.push_error(DatamodelError::new_attribute_validation_error(
+            message,
+            attr.name(),
+            attr.span,
+        ));
+
+        return;
+    }
+}

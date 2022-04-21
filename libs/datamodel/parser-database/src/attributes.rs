@@ -512,6 +512,7 @@ fn model_index(data: &mut ModelAttributes, model_id: ast::ModelId, ctx: &mut Con
         Some(Ok("Gist")) => Some(IndexAlgorithm::Gist),
         Some(Ok("Gin")) => Some(IndexAlgorithm::Gin),
         Some(Ok("SpGist")) => Some(IndexAlgorithm::SpGist),
+        Some(Ok("Brin")) => Some(IndexAlgorithm::Brin),
         Some(Ok(other)) => {
             ctx.push_attribute_validation_error(&format!("Unknown index type: {}.", other));
             None

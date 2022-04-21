@@ -76,6 +76,7 @@ fn with_raw_unsupported() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -102,6 +103,7 @@ fn with_unsupported_no_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -130,6 +132,7 @@ fn no_ops_inet_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -157,6 +160,7 @@ fn inet_type_network_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -184,6 +188,7 @@ fn no_native_type_network_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -264,6 +269,7 @@ fn no_ops_text_native_type() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -291,6 +297,7 @@ fn text_type_text_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 
@@ -318,6 +325,7 @@ fn no_native_type_text_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::SpGist),
+        clustered: None,
     });
 }
 

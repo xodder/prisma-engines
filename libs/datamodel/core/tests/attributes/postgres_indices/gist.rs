@@ -1,6 +1,57 @@
 use crate::{common::*, with_header, Provider};
 
 #[test]
+fn not_allowed_with_unique() {
+    let dml = indoc! {r#"
+        model A {
+          id Int @id
+          a  Int @unique(type: Gist)
+        }
+    "#};
+
+    let schema = with_header(dml, Provider::Postgres, &["extendedIndexes"]);
+    let error = datamodel::parse_schema(&schema).map(drop).unwrap_err();
+
+    let expectation = expect![[r#"
+        [1;91merror[0m: [1mNo such argument.[0m
+          [1;94m-->[0m  [4mschema.prisma:13[0m
+        [1;94m   | [0m
+        [1;94m12 | [0m  id Int @id
+        [1;94m13 | [0m  a  Int @unique([1;91mtype: Gist[0m)
+        [1;94m   | [0m
+    "#]];
+
+    expectation.assert_eq(&error)
+}
+
+#[test]
+fn not_allowed_with_compound_unique() {
+    let dml = indoc! {r#"
+        model A {
+          id Int @id
+          a  Int
+          b  Int
+
+          @@unique([a, b], type: Gist)
+        }
+    "#};
+
+    let schema = with_header(dml, Provider::Postgres, &["extendedIndexes"]);
+    let error = datamodel::parse_schema(&schema).map(drop).unwrap_err();
+
+    let expectation = expect![[r#"
+        [1;91merror[0m: [1mNo such argument.[0m
+          [1;94m-->[0m  [4mschema.prisma:16[0m
+        [1;94m   | [0m
+        [1;94m15 | [0m
+        [1;94m16 | [0m  @@unique([a, b], [1;91mtype: Gist[0m)
+        [1;94m   | [0m
+    "#]];
+
+    expectation.assert_eq(&error)
+}
+
+#[test]
 fn without_preview_feature() {
     let dml = indoc! {r#"
         model A {
@@ -76,6 +127,7 @@ fn with_inet() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gist),
+        clustered: None,
     });
 }
 
@@ -103,6 +155,7 @@ fn with_raw_unsupported() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gist),
+        clustered: None,
     });
 }
 
@@ -129,6 +182,7 @@ fn with_unsupported_no_ops() {
         tpe: IndexType::Normal,
         defined_on_field: false,
         algorithm: Some(IndexAlgorithm::Gist),
+        clustered: None,
     });
 }
 

@@ -124,6 +124,36 @@ impl ScalarFieldType {
     pub fn is_string(self) -> bool {
         matches!(self, Self::BuiltInScalar(ScalarType::String))
     }
+
+    /// True if the field's type is Bytes.
+    pub fn is_bytes(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::Bytes))
+    }
+
+    /// True if the field's type is DateTime.
+    pub fn is_datetime(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::DateTime))
+    }
+
+    /// True if the field's type is Float.
+    pub fn is_float(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::Float))
+    }
+
+    /// True if the field's type is Int.
+    pub fn is_int(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::Int))
+    }
+
+    /// True if the field's type is BigInt.
+    pub fn is_bigint(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::BigInt))
+    }
+
+    /// True if the field's type is Decimal.
+    pub fn is_decimal(self) -> bool {
+        matches!(self, Self::BuiltInScalar(ScalarType::Decimal))
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -215,6 +245,8 @@ pub enum IndexAlgorithm {
     Gin,
     /// SP-GiST index
     SpGist,
+    /// Brin index
+    Brin,
 }
 
 impl fmt::Display for IndexAlgorithm {
@@ -225,6 +257,7 @@ impl fmt::Display for IndexAlgorithm {
             IndexAlgorithm::Gist => f.write_str("Gist"),
             IndexAlgorithm::Gin => f.write_str("Gin"),
             IndexAlgorithm::SpGist => f.write_str("SpGist"),
+            IndexAlgorithm::Brin => f.write_str("Brin"),
         }
     }
 }
@@ -252,7 +285,7 @@ impl IndexAlgorithm {
 
     /// BRIN?
     pub fn is_brin(self) -> bool {
-        todo!()
+        matches!(self, Self::Brin)
     }
 
     /// True if the operator class can be used with the given scalar type.
@@ -269,6 +302,15 @@ impl IndexAlgorithm {
             IndexAlgorithm::Gist => r#type.is_string(),
             IndexAlgorithm::Gin => r#type.is_json() || field.ast_field().arity.is_list(),
             IndexAlgorithm::SpGist => r#type.is_string(),
+            IndexAlgorithm::Brin => {
+                r#type.is_string()
+                    || r#type.is_bytes()
+                    || r#type.is_datetime()
+                    || r#type.is_float()
+                    || r#type.is_int()
+                    || r#type.is_bigint()
+                    || r#type.is_decimal()
+            }
         }
     }
 }
@@ -314,6 +356,10 @@ impl IndexAttribute {
 
     pub(crate) fn is_fulltext(&self) -> bool {
         matches!(self.r#type, IndexType::Fulltext)
+    }
+
+    pub(crate) fn is_normal(&self) -> bool {
+        matches!(self.r#type, IndexType::Normal)
     }
 
     pub(crate) fn fields_match(&self, other: &[ast::FieldId]) -> bool {
@@ -672,6 +718,112 @@ pub enum OperatorClass {
     NetworkOps,
     /// SP-GiST + text type
     TextOps,
+    /// BRIN + bit
+    BitMinMaxOps,
+    /// BRIN + varbit
+    VarBitMinMaxOps,
+    /// BRIN + char
+    BpcharBloomOps,
+    /// BRIN + char
+    BpcharMinMaxOps,
+    /// BRIN + bytea
+    ByteaBloomOps,
+    /// BRIN + bytea
+    ByteaMinMaxOps,
+    /// BRIN + char
+    CharBloomOps,
+    /// BRIN + char
+    CharMinMaxOps,
+    /// BRIN + date
+    DateBloomOps,
+    /// BRIN + date
+    DateMinMaxOps,
+    /// BRIN + date
+    DateMinMaxMultiOps,
+    /// BRIN + float
+    Float4BloomOps,
+    /// BRIN + float
+    Float4MinMaxOps,
+    /// BRIN + float
+    Float4MinMaxMultiOps,
+    /// BRIN + double
+    Float8BloomOps,
+    /// BRIN + double
+    Float8MinMaxOps,
+    /// BRIN + double
+    Float8MinMaxMultiOps,
+    /// BRIN + inet
+    InetInclusionOps,
+    /// BRIN + inet
+    InetBloomOps,
+    /// BRIN + inet
+    InetMinMaxOps,
+    /// BRIN + inet
+    InetMinMaxMultiOps,
+    /// BRIN + int2
+    Int2BloomOps,
+    /// BRIN + int2
+    Int2MinMaxOps,
+    /// BRIN + int2
+    Int2MinMaxMultiOps,
+    /// BRIN + int4
+    Int4BloomOps,
+    /// BRIN + int4
+    Int4MinMaxOps,
+    /// BRIN + int4
+    Int4MinMaxMultiOps,
+    /// BRIN + int8
+    Int8BloomOps,
+    /// BRIN + int8
+    Int8MinMaxOps,
+    /// BRIN + int8
+    Int8MinMaxMultiOps,
+    /// BRIN + numeric
+    NumericBloomOps,
+    /// BRIN + numeric
+    NumericMinMaxOps,
+    /// BRIN + numeric
+    NumericMinMaxMultiOps,
+    /// BRIN + oid
+    OidBloomOps,
+    /// BRIN + oid
+    OidMinMaxOps,
+    /// BRIN + oid
+    OidMinMaxMultiOps,
+    /// BRIN + text
+    TextBloomOps,
+    /// BRIN + text
+    TextMinMaxOps,
+    /// BRIN + timestamp
+    TimestampBloomOps,
+    /// BRIN + timestamp
+    TimestampMinMaxOps,
+    /// BRIN + timestamp
+    TimestampMinMaxMultiOps,
+    /// BRIN + timestamptz
+    TimestampTzBloomOps,
+    /// BRIN + timestamptz
+    TimestampTzMinMaxOps,
+    /// BRIN + timestamptz
+    TimestampTzMinMaxMultiOps,
+    /// BRIN + time
+    TimeBloomOps,
+    /// BRIN + time
+    TimeMinMaxOps,
+    /// BRIN + time
+    TimeMinMaxMultiOps,
+    /// BRIN + timetz
+    TimeTzBloomOps,
+    /// BRIN + timetz
+    TimeTzMinMaxOps,
+    /// BRIN + timetz
+    TimeTzMinMaxMultiOps,
+    /// BRIN + uuid
+    UuidBloomOps,
+    /// BRIN + uuid
+    UuidMinMaxOps,
+    /// BRIN + uuid
+    UuidMinMaxMultiOps,
 }
 
 impl OperatorClass {
@@ -684,6 +836,59 @@ impl OperatorClass {
             Self::ArrayOps => matches!(algo, IndexAlgorithm::Gin),
             Self::NetworkOps => matches!(algo, IndexAlgorithm::SpGist),
             Self::TextOps => matches!(algo, IndexAlgorithm::SpGist),
+            Self::BitMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::VarBitMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::BpcharBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::BpcharMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::ByteaBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::ByteaMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::CharBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::CharMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::DateBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::DateMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::DateMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float4BloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float4MinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float4MinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float8BloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float8MinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Float8MinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::InetInclusionOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::InetBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::InetMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::InetMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int2BloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int2MinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int2MinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int4BloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int4MinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int4MinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int8BloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int8MinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::Int8MinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::NumericBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::NumericMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::NumericMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::OidBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::OidMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::OidMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TextBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TextMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampTzBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampTzMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimestampTzMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeTzBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeTzMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::TimeTzMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::UuidBloomOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::UuidMinMaxOps => matches!(algo, IndexAlgorithm::Brin),
+            Self::UuidMinMaxMultiOps => matches!(algo, IndexAlgorithm::Brin),
         }
     }
 }
@@ -691,12 +896,65 @@ impl OperatorClass {
 impl fmt::Display for OperatorClass {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OperatorClass::InetOps => f.write_str("InetOps"),
-            OperatorClass::JsonbOps => f.write_str("JsonbOps"),
-            OperatorClass::JsonbPathOps => f.write_str("JsonbPathOps"),
-            OperatorClass::ArrayOps => f.write_str("ArrayOps"),
-            OperatorClass::NetworkOps => f.write_str("NetworkOps"),
-            OperatorClass::TextOps => f.write_str("TextOps"),
+            Self::InetOps => f.write_str("InetOps"),
+            Self::JsonbOps => f.write_str("JsonbOps"),
+            Self::JsonbPathOps => f.write_str("JsonbPathOps"),
+            Self::ArrayOps => f.write_str("ArrayOps"),
+            Self::NetworkOps => f.write_str("NetworkOps"),
+            Self::TextOps => f.write_str("TextOps"),
+            Self::BitMinMaxOps => f.write_str("BitMinMaxOps"),
+            Self::VarBitMinMaxOps => f.write_str("VarBitMinMaxOps"),
+            Self::BpcharBloomOps => f.write_str("BpcharBloomOps"),
+            Self::BpcharMinMaxOps => f.write_str("BpcharMinMaxOps"),
+            Self::ByteaBloomOps => f.write_str("ByteaBloomOps"),
+            Self::ByteaMinMaxOps => f.write_str("ByteaMinMaxOps"),
+            Self::CharBloomOps => f.write_str("CharBloomOps"),
+            Self::CharMinMaxOps => f.write_str("CharMinMaxOps"),
+            Self::DateBloomOps => f.write_str("DateBloomOps"),
+            Self::DateMinMaxOps => f.write_str("DateMinMaxOps"),
+            Self::DateMinMaxMultiOps => f.write_str("DateMinMaxMultiOps"),
+            Self::Float4BloomOps => f.write_str("Float4BloomOps"),
+            Self::Float4MinMaxOps => f.write_str("Float4MinMaxOps"),
+            Self::Float4MinMaxMultiOps => f.write_str("Float4MinMaxMultiOps"),
+            Self::Float8BloomOps => f.write_str("Float8BloomOps"),
+            Self::Float8MinMaxOps => f.write_str("Float8MinMaxOps"),
+            Self::Float8MinMaxMultiOps => f.write_str("Float8MinMaxMultiOps"),
+            Self::InetInclusionOps => f.write_str("InetInclusionOps"),
+            Self::InetBloomOps => f.write_str("InetBloomOps"),
+            Self::InetMinMaxOps => f.write_str("InetMinMaxOps"),
+            Self::InetMinMaxMultiOps => f.write_str("InetMinMaxMultiOps"),
+            Self::Int2BloomOps => f.write_str("Int2BloomOps"),
+            Self::Int2MinMaxOps => f.write_str("Int2MinMaxOps"),
+            Self::Int2MinMaxMultiOps => f.write_str("Int2MinMaxMultiOps"),
+            Self::Int4BloomOps => f.write_str("Int4BloomOps"),
+            Self::Int4MinMaxOps => f.write_str("Int4MinMaxOps"),
+            Self::Int4MinMaxMultiOps => f.write_str("Int4MinMaxMultiOps"),
+            Self::Int8BloomOps => f.write_str("Int8BloomOps"),
+            Self::Int8MinMaxOps => f.write_str("Int8MinMaxOps"),
+            Self::Int8MinMaxMultiOps => f.write_str("Int8MinMaxMultiOps"),
+            Self::NumericBloomOps => f.write_str("NumericBloomOps"),
+            Self::NumericMinMaxOps => f.write_str("NumericMinMaxOps"),
+            Self::NumericMinMaxMultiOps => f.write_str("NumericMinMaxMultiOps"),
+            Self::OidBloomOps => f.write_str("OidBloomOps"),
+            Self::OidMinMaxOps => f.write_str("OidMinMaxOps"),
+            Self::OidMinMaxMultiOps => f.write_str("OidMinMaxMultiOps"),
+            Self::TextBloomOps => f.write_str("TextBloomOps"),
+            Self::TextMinMaxOps => f.write_str("TextMinMaxOps"),
+            Self::TimestampBloomOps => f.write_str("TimestampBloomOps"),
+            Self::TimestampMinMaxOps => f.write_str("TimestampMinMaxOps"),
+            Self::TimestampMinMaxMultiOps => f.write_str("TimestampMinMaxMultiOps"),
+            Self::TimestampTzBloomOps => f.write_str("TimestampTzBloomOps"),
+            Self::TimestampTzMinMaxOps => f.write_str("TimestampTzMinMaxOps"),
+            Self::TimestampTzMinMaxMultiOps => f.write_str("TimestampTzMinMaxMultiOps"),
+            Self::TimeBloomOps => f.write_str("TimeBloomOps"),
+            Self::TimeMinMaxOps => f.write_str("TimeMinMaxOps"),
+            Self::TimeMinMaxMultiOps => f.write_str("TimeMinMaxMultiOps"),
+            Self::TimeTzBloomOps => f.write_str("TimeTzBloomOps"),
+            Self::TimeTzMinMaxOps => f.write_str("TimeTzMinMaxOps"),
+            Self::TimeTzMinMaxMultiOps => f.write_str("TimeTzMinMaxMultiOps"),
+            Self::UuidBloomOps => f.write_str("UuidBloomOps"),
+            Self::UuidMinMaxOps => f.write_str("UuidMinMaxOps"),
+            Self::UuidMinMaxMultiOps => f.write_str("BitMinMaxOps"),
         }
     }
 }

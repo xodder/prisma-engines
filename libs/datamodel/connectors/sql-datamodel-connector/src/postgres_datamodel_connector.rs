@@ -110,6 +110,7 @@ const INDEX_TYPES: &[IndexAlgorithm] = &[
     IndexAlgorithm::Hash,
     IndexAlgorithm::Gin,
     IndexAlgorithm::SpGist,
+    IndexAlgorithm::Brin,
 ];
 
 pub struct PostgresDatamodelConnector;
