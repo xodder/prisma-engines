@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CompositeType","Datamodel","DefaultValue","Enum","EnumVariant","Field","FieldType","IdDefinition","IdFieldDefinition","IndexDefinition","IndexFieldInput","IndexOps","Model","Relation","UniqueFieldAttribute","View"]};

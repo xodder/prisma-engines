@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["AtomicI64","AtomicU64"]};

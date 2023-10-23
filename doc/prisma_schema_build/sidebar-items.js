@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["code_actions","debug_panic","format","get_config","get_dmmf","lint","native_types","preview_features","referential_actions","text_document_completion","validate"]};

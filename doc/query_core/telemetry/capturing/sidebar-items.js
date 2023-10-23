@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Capturer"],"fn":["capturer","install_capturing_layer"],"mod":["storage"],"struct":["Settings"],"trait":["TxTraceExt"]};

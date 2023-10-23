@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["CliCommand",""]],"fn":[["parse_base64_string",""]],"struct":[["Cli",""]]});

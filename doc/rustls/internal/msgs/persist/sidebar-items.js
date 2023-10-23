@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ClientSessionKey","Keys for session resumption and tickets. Matching value is a `ClientSessionValue`."],["ClientSessionValue",""],["ServerSessionValue",""]],"type":[["ServerSessionKey",""]]});
+window.SIDEBAR_ITEMS = {"enum":["ClientSessionValue"],"struct":["ClientSessionCommon","ClientSessionKey","Retrieved","ServerSessionValue","Tls12ClientSessionValue","Tls13ClientSessionValue"],"type":["ServerSessionKey"]};

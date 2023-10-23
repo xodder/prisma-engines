@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["COCKROACH",""],["MSSQL",""],["MYSQL",""],["POSTGRES",""],["SQLITE",""]]});

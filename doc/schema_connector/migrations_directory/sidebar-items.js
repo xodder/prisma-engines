@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MIGRATION_LOCK_FILENAME","MIGRATION_SCRIPT_FILENAME"],"fn":["create_migration_directory","error_on_changed_provider","list_migrations","read_provider_from_lock_file","write_migration_lock_file"],"struct":["ListMigrationsError","MigrationDirectory","ReadMigrationScriptError"]};

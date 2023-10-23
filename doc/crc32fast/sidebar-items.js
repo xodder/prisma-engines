@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Hasher","Represents an in-progress CRC32 computation."]]});
+window.SIDEBAR_ITEMS = {"fn":["hash"],"struct":["Hasher"]};

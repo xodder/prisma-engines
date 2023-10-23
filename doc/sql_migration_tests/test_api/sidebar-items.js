@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["test_connector"],"enum":["Capabilities","DbExecuteDatasourceType","Tags"],"fn":["tok"],"macro":["expect"],"struct":["BitFlags","DbExecuteParams","DiffParams","DiffResult","Namespaces","SchemaAssertion","SchemaContainer","SingleRowInsert","TestApi","TestConnectorHost","UrlContainer"],"trait":["MigrationsAssertions","ResultSetExt"]};

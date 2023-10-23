@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["method_names","types"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["InputTypeDescription","ValidationErrorKind"],"struct":["ArgumentDescription","InputTypeConstraints","InputTypeDescriptionField","OutputTypeDescription","OutputTypeDescriptionField","ValidationError"]};

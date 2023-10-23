@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["EXTENSIONS_KEY"],"enum":["ConstraintScope","ConstraintType","Flavour","RelationMode","StringFilter"],"mod":["capabilities","completions","constraint_names","walker_ext_traits"],"struct":["EmptyDatamodelConnector","NativeTypeConstructor","NativeTypeInstance"],"trait":["Connector","NativeTypeArguments"]};

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ts_milliseconds","Used to serialize/deserialize from millisecond-precision timestamps"],["ts_nanoseconds","Used to serialize/deserialize from nanosecond-precision timestamps"],["ts_seconds","Used to serialize/deserialize from second-precision timestamps"]]});
+window.SIDEBAR_ITEMS = {"mod":["ts_microseconds","ts_microseconds_option","ts_milliseconds","ts_milliseconds_option","ts_nanoseconds","ts_nanoseconds_option","ts_seconds","ts_seconds_option"]};

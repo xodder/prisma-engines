@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"attr":["test_connector"],"enum":["Capabilities","Tags"],"macro":["expect","formatdoc","indoc"],"struct":["BitFlags","TestApi"],"trait":["Queryable"]};

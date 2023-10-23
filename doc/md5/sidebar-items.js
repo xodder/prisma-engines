@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Md5","The MD5 hasher"]],"trait":[["Digest","The `Digest` trait specifies an interface common for digest functions."]]});
+window.SIDEBAR_ITEMS = {"struct":["Md5Core"],"trait":["Digest"],"type":["Md5"]};

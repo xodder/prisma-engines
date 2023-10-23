@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Circumstances",""]],"struct":[["SqlSchemaDescriber",""]]});
+window.SIDEBAR_ITEMS = {"enum":["Circumstances","Constraint","ConstraintOption","IndexNullPosition","SQLOperatorClassKind","SqlIndexAlgorithm"],"struct":["DatabaseExtension","ExtensionId","ExtensionWalker","PostgresSchemaExt","SQLOperatorClass","Sequence","SqlSchemaDescriber"]};

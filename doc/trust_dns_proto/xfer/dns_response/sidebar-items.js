@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["NegativeType",""]],"struct":[["DnsResponse","A DNS response object"],["DnsResponseFuture","A future returning a DNS response"]]});
+window.SIDEBAR_ITEMS = {"enum":["NegativeType"],"struct":["DnsResponse","DnsResponseStream"]};

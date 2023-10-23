@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["OperationType"],"struct":["ChangeNamespace","ChangeStreamEvent","ResumeToken","TruncatedArray","UpdateDescription"]};

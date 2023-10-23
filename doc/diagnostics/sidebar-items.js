@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["DatamodelWarning","Enum for different warnings which can happen during parsing or validation."]],"struct":[["ConnectorErrorFactory",""],["DatamodelError",""],["Diagnostics","Represents a list of validation or parser errors and warnings."],["Span","Represents a location in a datamodel’s text representation."],["Validated",""]]});
+window.SIDEBAR_ITEMS = {"struct":["DatamodelError","DatamodelWarning","Diagnostics","NativeTypeErrorFactory","Span"]};

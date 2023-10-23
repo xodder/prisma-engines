@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_mysql_database","mysql_safe_identifier"]};

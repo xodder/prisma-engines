@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["UserFacingError",""]]});
+window.SIDEBAR_ITEMS = {"derive":["SimpleUserFacingError","UserFacingError"]};
